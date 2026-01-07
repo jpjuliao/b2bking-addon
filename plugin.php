@@ -10,8 +10,6 @@
  * Text Domain: jpjuliao-b2bking-user-dashboard
  */
 
-
-// If this file is called directly, abort.
 if (!defined('WPINC')) {
   die;
 }
@@ -19,10 +17,9 @@ if (!defined('WPINC')) {
 if (!defined('B2BKING_VERSION')) {
   define('B2BKING_VERSION', 'v5.4.50');
 }
-if (!defined('B2BKING_FILE_RELEASE')) { // dev or production
+if (!defined('B2BKING_FILE_RELEASE')) {
   define('B2BKING_FILE_RELEASE', 'PROD');
 }
-
 
 if (!defined('B2BKING_DIR')) {
   define('B2BKING_DIR', plugin_dir_path(__FILE__));
@@ -45,10 +42,8 @@ if (!function_exists('b2bking')) {
   }
 }
 
-require_once plugin_dir_path(__FILE__) . '/class-init.php';
 require_once plugin_dir_path(__FILE__) . '/class-dashboard.php';
 require_once plugin_dir_path(__FILE__) . '/class-reports.php';
 
-new JPJULIAO\B2BKing\User_Dashboard\Init();
 new JPJULIAO\B2BKing\User_Dashboard\Dashboard();
 new JPJULIAO_B2bking_Reports();
