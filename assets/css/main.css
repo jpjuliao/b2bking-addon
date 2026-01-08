@@ -1,0 +1,21 @@
+div#b2bking_dashboard_wrapper {
+  background: #fff;
+}
+
+.b2bking_dashboard_page_wrapper {
+  background: #fff;
+  padding: 0;
+}
+
+a#b2bking_export_report_button {
+  background-color: #2bc194;
+  color: #fff;
+}
+
+.b2bkingpreloader {
+  background-color: transparent;
+
+  img {
+    filter: grayscale(1);
+  }
+}

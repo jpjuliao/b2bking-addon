@@ -22,6 +22,13 @@ class Scripts
       $ver = $this->version
     );
 
+    wp_enqueue_style(
+      'b2bking_custom_main_style',
+      plugins_url('./assets/css/main.css', __FILE__),
+      $deps = array(),
+      $ver = $this->version
+    );
+
     // wp_enqueue_style('wp-color-picker');
     wp_enqueue_script(
       'b2bking_custom_script',
