@@ -607,7 +607,8 @@
 					$(".b2bkingpreloader").fadeOut();
 					$(".b2bking_dashboard_page_wrapper").show();
 
-					if (jQuery('body').hasClass('b2bking_page_b2bking_reports')) {
+					// if (jQuery('body').hasClass('b2bking_page_b2bking_reports')) {
+					if (jQuery('body').hasClass('woocommerce-dashboard')) {
 						// reports
 					} else {
 						// dashboard
@@ -1185,15 +1186,16 @@
 
 				// get data
 				var datavar = {
-					action: 'b2bking_custom_reports_get_data',
+					action: 'b2bking_custom_data',
 					security: b2bking.security,
 					customers: customers,
 					firstday: firstday,
 					lastday: lastday,
 				};
-				console.log(datavar);
+				console.log(ajaxurl, datavar);
 
-				$.post(ajaxurl, datavar, function (response) {
+				$.post(ajaxurl.ajaxurl, datavar, function (response) {
+					console.log(response);
 
 					let data = response.split('*');
 
