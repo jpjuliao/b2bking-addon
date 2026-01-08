@@ -29,7 +29,7 @@ function check_plugin_dependencies()
     'woocommerce/woocommerce.php'
   ];
 
-  $bypass = true;
+  $all_plugins_active = true;
 
   foreach ($plugin_slug as $slug) {
     $is_installed = array_key_exists($slug, get_plugins());
@@ -41,26 +41,26 @@ function check_plugin_dependencies()
         <div class="notice notice-warning">
           <p>
             <?php _e(
-              'B2BKing User Dashboard requires B2BKing Pro to be ' .
-              ' active. Please activate ' . $slug . ' to use this plugin.',
+              'B2BKing User Dashboard requires ' . $slug . ' to be ' .
+              'active. Please activate ' . $slug . ' to use this plugin.',
               'jpjuliao-b2bking-user-dashboard'
             ); ?>
           </p>
         </div>
         <?php
       });
-      $bypass = false;
+      $all_plugins_active = false;
     }
   }
 
-  return $bypass;
+  return $all_plugins_active;
 }
 
 if (!check_plugin_dependencies()) {
   return;
 }
 
-add_action('wp_loaded', function () {
+add_action('template_redirect', function () {
   $user_id = get_current_user_id();
   $is_b2b = get_user_meta($user_id, 'b2bking_b2buser', true);
   if ($is_b2b !== 'yes') {
