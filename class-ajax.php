@@ -1,6 +1,8 @@
 <?php
 
-class b2bking_custom_be_api
+namespace JPJULIAO\B2BKing\User_Dashboard;
+
+class AJAX
 {
   public function __construct()
   {
@@ -10,29 +12,20 @@ class b2bking_custom_be_api
 
   public function ajax_handler()
   {
-    // check_ajax_referer('my_ajax_nonce', 'nonce');
-    // echo json_encode(array('result' => 'hi processed'));
-    $this->b2bking_reports_get_data();
-    wp_die();
-
-  }
-
-  function b2bking_reports_get_data()
-  {
-    // Check security nonce. 
     if (!check_ajax_referer('b2bking_security_nonce', 'security')) {
       wp_send_json_error('Invalid security token sent.');
       wp_die();
     }
 
-    // Capability check
-    if (!current_user_can(apply_filters('b2bking_backend_capability_needed', 'manage_woocommerce'))) {
-      wp_send_json_error('Failed capability check.');
-      wp_die();
-    }
+    $this->get_data();
+    wp_die();
 
+  }
 
-    $customers = sanitize_text_field($_POST['customers']);
+  function get_data()
+  {
+
+    $customers = 'user_' . get_current_user_id();
     $firstday = sanitize_text_field($_POST['firstday']);
     $lastday = sanitize_text_field($_POST['lastday']);
 
@@ -45,7 +38,6 @@ class b2bking_custom_be_api
     $date_to = $lastday;
     $date_from = $firstday;
 
-    // GET ALL ORDERS FIRST
     $args = array(
       'status' => apply_filters('b2bking_reports_statuses', array('wc-on-hold', 'wc-pending', 'wc-processing', 'wc-completed')),
       'date_created' => $date_from . '...' . $date_to,
@@ -54,7 +46,7 @@ class b2bking_custom_be_api
 
     );
 
-    $orders = wc_get_orders($args);
+    $orders = \wc_get_orders($args);
 
     $args = array(
       'status' => array('wc-refunded'),
@@ -63,76 +55,9 @@ class b2bking_custom_be_api
       'type' => 'shop_order',
 
     );
-    $orders_refunded = wc_get_orders($args);
+    $orders_refunded = \wc_get_orders($args);
 
-    // NARROW ORDERS DOWN by customer
-    if ($customers === 'all') {
-      // all orders already
-    }
-    if ($customers === 'b2b') {
-      // remove non-b2b orders
-      foreach ($orders as $index => $order) {
-        $order_customer = $order->get_customer_id();
-        $is_b2b = get_user_meta($order_customer, 'b2bking_b2buser', true);
-        if ($is_b2b !== 'yes') {
-          unset($orders[$index]);
-        }
-      }
-      foreach ($orders_refunded as $index => $order) {
-        $order_customer = $order->get_customer_id();
-        $is_b2b = get_user_meta($order_customer, 'b2bking_b2buser', true);
-        if ($is_b2b !== 'yes') {
-          unset($orders_refunded[$index]);
-        }
-      }
-    }
-    if ($customers === 'b2c') {
-      // remove non-b2b orders
-      foreach ($orders as $index => $order) {
-        $order_customer = $order->get_customer_id();
-        $is_b2b = get_user_meta($order_customer, 'b2bking_b2buser', true);
-        if ($is_b2b === 'yes') {
-          unset($orders[$index]);
-        }
-      }
-      foreach ($orders_refunded as $index => $order) {
-        $order_customer = $order->get_customer_id();
-        $is_b2b = get_user_meta($order_customer, 'b2bking_b2buser', true);
-        if ($is_b2b === 'yes') {
-          unset($orders_refunded[$index]);
-        }
-      }
-    }
     $group_explode = explode('_', $customers);
-    if ($group_explode[0] === 'group') {
-      // remove non-group orders
-      foreach ($orders as $index => $order) {
-        $order_customer = $order->get_customer_id();
-        $is_b2b = get_user_meta($order_customer, 'b2bking_b2buser', true);
-        $customer_group = get_user_meta($order_customer, 'b2bking_customergroup', true);
-        if ($is_b2b !== 'yes') {
-          unset($orders[$index]);
-        } else {
-          // is b2b but not in group
-          if ($customer_group !== $group_explode[1]) {
-            unset($orders[$index]);
-          }
-        }
-      }
-      foreach ($orders_refunded as $index => $order) {
-        $order_customer = $order->get_customer_id();
-        $is_b2b = get_user_meta($order_customer, 'b2bking_b2buser', true);
-        $customer_group = get_user_meta($order_customer, 'b2bking_customergroup', true);
-        if ($is_b2b !== 'yes') {
-          unset($orders[$index]);
-        } else {
-          // is b2b but not in group
-          if ($customer_group !== $group_explode[1]) {
-            unset($orders_refunded[$index]);
-          }
-        }
-      }
-    }
     if ($group_explode[0] === 'user') {
       // remove non-group orders
       foreach ($orders as $index => $order) {

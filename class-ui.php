@@ -1,6 +1,8 @@
 <?php
 
-class b2bking_custom_fe_html
+namespace JPJULIAO\B2BKing\User_Dashboard;
+
+class UI
 {
   public function __construct()
   {
@@ -9,7 +11,13 @@ class b2bking_custom_fe_html
       'woocommerce_account_dashboard',
       [$this, 'reports_page_content']
     );
+
+    add_action(
+      'woocommerce_account_dashboard',
+      [$this, 'popular_products']
+    );
   }
+
   public static function get_header_bar()
   {
 
@@ -26,7 +34,7 @@ class b2bking_custom_fe_html
         }
 
         if ($custom_logo === 'no') {
-          $custom_logo = plugins_url('../includes/assets/images/logo.png', __FILE__);
+          $custom_logo = plugins_url('./includes/assets/images/logo.png', __FILE__);
         }
 
         echo $custom_logo;
@@ -80,6 +88,7 @@ class b2bking_custom_fe_html
     </div>
     <?php
   }
+
   public function reports_page_content()
   {
 
@@ -90,7 +99,7 @@ class b2bking_custom_fe_html
       ?>
       <div class="b2bkingpreloader">
         <img class="b2bking_loader_icon_button"
-          src="<?php echo esc_attr(plugins_url('../includes/assets/images/loaderpagegold5.svg', __FILE__)); ?>">
+          src="<?php echo esc_attr(plugins_url('./includes/assets/images/loaderpagegold5.svg', __FILE__)); ?>">
       </div>
       <?php
     }
@@ -120,70 +129,6 @@ class b2bking_custom_fe_html
                       </ul>
                       <div class="b2bking_reports_topright_container">
                         <div class="dl b2bking_reports_topright">
-                          <select id="b2bking_reports_days_select" class="custom-select">
-                            <?php
-                            if (get_option('b2bking_plugin_status_setting', 'b2b') === 'hybrid') {
-                              ?>
-                              <option value="all"><?php esc_html_e('All Customers (B2B + B2C)', 'b2bking'); ?></option>
-                              <?php
-                            }
-                            ?>
-                            <option value="b2b"><?php
-
-                            if (get_option('b2bking_plugin_status_setting', 'b2b') === 'hybrid') {
-
-                              esc_html_e('B2B Customers', 'b2bking');
-
-                            } else {
-
-                              esc_html_e('All B2B Customers', 'b2bking');
-
-                            }
-
-                            ?></option>
-                            <?php
-                            if (get_option('b2bking_plugin_status_setting', 'b2b') === 'hybrid') {
-                              ?>
-                              <option value="b2c"><?php esc_html_e('B2C Customers', 'b2bking'); ?></option>
-                              <?php
-                            }
-                            ?>
-
-                            <optgroup label="<?php esc_html_e('Groups', 'b2bking'); ?>">
-                              <?php
-                              $groups = get_posts(array('post_type' => 'b2bking_group', 'post_status' => 'publish', 'numberposts' => -1));
-                              foreach ($groups as $group) {
-                                ?>
-                                <option value="<?php echo 'group_' . esc_attr($group->ID); ?>">
-                                  <?php echo esc_html(get_the_title($group->ID)); ?>
-                                </option>
-                                <?php
-                              }
-                              ?>
-                            </optgroup>
-
-                            <optgroup label="<?php esc_html_e('Individual Customers (B2B)', 'b2bking'); ?>">
-
-                              <?php
-
-                              $b2bcustomers = get_users(array(
-                                'meta_key' => 'b2bking_b2buser',
-                                'meta_value' => 'yes',
-                                'meta_compare' => '=',
-                              ));
-                              foreach ($b2bcustomers as $b2bcus) {
-                                ?>
-                                <option value="user_<?php echo esc_attr($b2bcus->ID); ?>"><?php
-                                   echo apply_filters('b2bking_reports_customer_display_name_filter', $b2bcus->display_name . '(' . $b2bcus->user_login . ')', $b2bcus)
-                                     ?></option>
-                                <?php
-                              }
-                              ?>
-                            </optgroup>
-                            <optgroup label="<?php esc_html_e('Comparisons (coming soon...)', 'b2bking'); ?>">
-
-                            </optgroup>
-                          </select>
                           <div class="b2bking_reports_fromto">
                             <div class="b2bking_reports_fromto_text"><?php esc_html_e('From:', 'b2bking'); ?></div>
                             <input type="date" id="b2bking_reports_date_input_from"
@@ -222,7 +167,7 @@ class b2bking_custom_fe_html
                     </div>
                     <!-- column -->
                     <img class="b2bking_reports_icon_loader"
-                      src="<?php echo esc_attr(plugins_url('../includes/assets/images/loaderpagegold5.svg', __FILE__)); ?>">
+                      src="<?php echo esc_attr(plugins_url('./includes/assets/images/loaderpagegold5.svg', __FILE__)); ?>">
                     <div class="col-lg-9">
                       <div class="campaign ct-charts"></div>
                     </div>
@@ -355,5 +300,50 @@ class b2bking_custom_fe_html
     </table>
     <?php
 
+  }
+
+  public function popular_products()
+  {
+    $products = [];
+    $id = get_current_user_id();
+    $orders = \wc_get_orders(array(
+      'customer_id' => $id,
+      'limit' => -1,
+    ));
+    foreach ($orders as $order) {
+      foreach ($order->get_items() as $item) {
+        $product_id = $item->get_product_id();
+        $quantity = $item->get_quantity();
+
+        if (isset($products[$product_id])) {
+          $products[$product_id] += $quantity;
+        } else {
+          $products[$product_id] = $quantity;
+        }
+      }
+    }
+    if (empty($products)) {
+      return;
+    }
+    echo '<div class="b2bk_user_dashboard_popular_products">';
+    echo '<h3>' . esc_html__('Popular Products', 'b2bking') . '</h3>';
+    echo '<table>';
+    echo '<thead>';
+    echo '<tr>';
+    echo '<th>' . esc_html__('Name', 'b2bking') . '</th>';
+    echo '<th>' . esc_html__('Quantity', 'b2bking') . '</th>';
+    echo '</tr>';
+    echo '</thead>';
+    echo '<tbody>';
+    foreach ($products as $product_id => $quantity) {
+      $link = get_the_permalink($product_id);
+      echo '<tr>';
+      echo '<td><a href="' . $link . '">' . get_the_title($product_id) . '</a></td>';
+      echo '<td>' . $quantity . '</td>';
+      echo '</tr>';
+    }
+    echo '</tbody>';
+    echo '</table>';
+    echo '</div>';
   }
 }
