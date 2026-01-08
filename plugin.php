@@ -17,49 +17,6 @@ if (!defined('WPINC')) {
   die;
 }
 
-function check_plugin_dependencies()
-{
-  if (!function_exists('is_plugin_active')) {
-    require_once ABSPATH . 'wp-admin/includes/plugin.php';
-  }
-
-  $plugin_slug = [
-    'b2bking/b2bking.php',
-    'b2bking-wholesale-for-woocommerce/b2bking.php',
-    'woocommerce/woocommerce.php'
-  ];
-
-  $all_plugins_active = true;
-
-  foreach ($plugin_slug as $slug) {
-    $is_installed = array_key_exists($slug, get_plugins());
-    $is_active = is_plugin_active($slug);
-
-    if (!$is_installed || !$is_active) {
-      add_action('admin_notices', function () use ($slug) {
-        ?>
-        <div class="notice notice-warning">
-          <p>
-            <?php _e(
-              'B2BKing User Dashboard requires ' . $slug . ' to be ' .
-              'active. Please activate ' . $slug . ' to use this plugin.',
-              'jpjuliao-b2bking-user-dashboard'
-            ); ?>
-          </p>
-        </div>
-        <?php
-      });
-      $all_plugins_active = false;
-    }
-  }
-
-  return $all_plugins_active;
-}
-
-if (!check_plugin_dependencies()) {
-  return;
-}
-
 add_action('template_redirect', function () {
   $user_id = get_current_user_id();
   $is_b2b = get_user_meta($user_id, 'b2bking_b2buser', true);
@@ -68,8 +25,14 @@ add_action('template_redirect', function () {
   }
   require_once plugin_dir_path(__FILE__) . 'class-ui.php';
   require_once plugin_dir_path(__FILE__) . 'class-scripts.php';
-  require_once plugin_dir_path(__FILE__) . 'class-ajax.php';
   new UI();
   new Scripts();
+});
+
+add_action('wp_loaded', function () {
+  if (is_admin() || !wp_doing_ajax()) {
+    return;
+  }
+  require_once plugin_dir_path(__FILE__) . 'class-ajax.php';
   new AJAX();
 });
