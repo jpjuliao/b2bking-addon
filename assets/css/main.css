@@ -1,5 +1,26 @@
 div#b2bking_dashboard_wrapper {
   background: #fff;
+
+  h1 {
+    font-size: 30px;
+  }
+
+  h2 {
+    font-size: 22px;
+  }
+
+  h3 {
+    font-size: 18px;
+  }
+
+  h5.card-subtitle {
+    font-weight: normal;
+  }
+
+  h3.card-title {
+    font-size: 36px;
+  }
+
 }
 
 .b2bking_dashboard_page_wrapper {
