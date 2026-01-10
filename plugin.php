@@ -24,14 +24,23 @@ function is_b2b_user(): bool
   return $is_b2b === 'yes';
 }
 
+define('PLUGIN_PATH', plugin_dir_path(__FILE__));
+define('PLUGIN_URL', plugin_dir_url(__FILE__));
+
 add_action('template_redirect', function () {
   if (is_b2b_user()) {
-    require_once plugin_dir_path(__FILE__) . 'class-user-report-scripts.php';
+    require_once(
+      PLUGIN_PATH . 'includes/user-report/class-user-report-scripts.php'
+    );
+    require_once(
+      PLUGIN_PATH . 'includes/user-report/class-user-report.php'
+    );
     new User_Report_Scripts();
-    require_once plugin_dir_path(__FILE__) . 'class-user-report.php';
     new User_Report();
   } else {
-    require_once plugin_dir_path(__FILE__) . 'class-guest-info-table.php';
+    require_once(
+      PLUGIN_PATH . 'includes/guest-info-table/class-guest-info-table.php'
+    );
     new Guest_Info_Table();
   }
 });
@@ -40,6 +49,9 @@ add_action('wp_loaded', function () {
   if (!is_b2b_user() || !wp_doing_ajax()) {
     return;
   }
-  require_once plugin_dir_path(__FILE__) . 'class-user-report-ajax.php';
+  require_once(
+    PLUGIN_PATH . 'includes/user-report/class-user-report-ajax.php'
+  );
   new User_Report_AJAX();
+
 });
