@@ -261,8 +261,12 @@ class User_Report
     foreach ($orders as $order) {
       foreach ($order->get_items() as $item) {
         $product_id = $item->get_product_id();
-        $quantity = $item->get_quantity();
 
+        if (!$product_id) {
+          continue;
+        }
+
+        $quantity = $item->get_quantity();
         if (isset($products[$product_id])) {
           $products[$product_id] += $quantity;
         } else {
