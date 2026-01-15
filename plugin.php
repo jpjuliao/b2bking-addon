@@ -11,7 +11,7 @@
  * Requires Plugins: b2bking, b2bking-wholesale-for-woocommerce, woocommerce
  */
 
-namespace JPJULIAO\B2BKing\User_Dashboard;
+namespace JPJULIAO\B2BKing_Addons;
 
 if (!defined('WPINC')) {
   die;
@@ -27,31 +27,12 @@ function is_b2b_user(): bool
 define('PLUGIN_PATH', plugin_dir_path(__FILE__));
 define('PLUGIN_URL', plugin_dir_url(__FILE__));
 
-add_action('template_redirect', function () {
-  if (is_b2b_user()) {
-    require_once(
-      PLUGIN_PATH . 'includes/user-report/class-user-report-scripts.php'
-    );
-    require_once(
-      PLUGIN_PATH . 'includes/user-report/class-user-report.php'
-    );
-    new User_Report_Scripts();
-    new User_Report();
-  } else {
-    require_once(
-      PLUGIN_PATH . 'includes/guest-info-table/class-guest-info-table.php'
-    );
-    new Guest_Info_Table();
-  }
-});
+require_once(
+  PLUGIN_PATH . 'modules/user-report/class-user-report.php'
+);
+new User_Report();
 
-add_action('wp_loaded', function () {
-  if (!is_b2b_user() || !wp_doing_ajax()) {
-    return;
-  }
-  require_once(
-    PLUGIN_PATH . 'includes/user-report/class-user-report-ajax.php'
-  );
-  new User_Report_AJAX();
-
-});
+require_once(
+  PLUGIN_PATH . 'modules/info-table/class-info-table.php'
+);
+new Info_Table();

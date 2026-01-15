@@ -1,6 +1,6 @@
 <?php
 
-namespace JPJULIAO\B2BKing\User_Dashboard;
+namespace JPJULIAO\B2BKing_Addons;
 
 class User_Report
 {
@@ -9,8 +9,18 @@ class User_Report
 
     add_action(
       'woocommerce_account_dashboard',
-      [$this, 'reports_page_content'],
+      [$this, 'main_content'],
       5
+    );
+
+    add_action(
+      'wp_loaded',
+      [$this, 'main_content_ajax']
+    );
+
+    add_action(
+      'template_redirect',
+      [$this, 'main_content_scripts']
     );
 
     add_action(
@@ -20,9 +30,8 @@ class User_Report
     );
   }
 
-  public function reports_page_content(): void
+  public function main_content(): void
   {
-
     // preloader if not in ajax - in ajax preloader is added via JS for smoother animations
     if (!wp_doing_ajax()) {
       ?>
@@ -219,6 +228,28 @@ class User_Report
 
   }
 
+  public function main_content_ajax(): void
+  {
+    if (!is_b2b_user() || !wp_doing_ajax()) {
+      return;
+    }
+    require_once(
+      PLUGIN_PATH . 'modules/user-report/class-user-report-ajax.php'
+    );
+    new User_Report_AJAX();
+  }
+
+  public function main_content_scripts(): void
+  {
+    if (!is_b2b_user()) {
+      return;
+    }
+    require_once(
+      PLUGIN_PATH . 'modules/user-report/class-user-report-scripts.php'
+    );
+    new User_Report_Scripts();
+  }
+
   public function popular_products(): void
   {
     $products = [];
@@ -263,4 +294,5 @@ class User_Report
     echo '</table>';
     echo '</div>';
   }
+
 }

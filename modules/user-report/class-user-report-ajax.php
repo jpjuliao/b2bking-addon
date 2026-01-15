@@ -1,13 +1,14 @@
 <?php
 
-namespace JPJULIAO\B2BKing\User_Dashboard;
+namespace JPJULIAO\B2BKing_Addons;
 
 class User_Report_AJAX
 {
   public function __construct()
   {
-    add_action('wp_ajax_b2bking_custom_data', [$this, 'ajax_handler']);
-    add_action('wp_ajax_nopriv_b2bking_custom_data', [$this, 'ajax_handler']);
+    $handle = 'b2bking_custom_data';
+    add_action('wp_ajax_' . $handle, [$this, 'ajax_handler']);
+    add_action('wp_ajax_nopriv_' . $handle, [$this, 'ajax_handler']);
   }
 
   public function ajax_handler(): void
@@ -19,7 +20,6 @@ class User_Report_AJAX
 
     $this->print_data();
     wp_die();
-
   }
 
   public function print_data(): void

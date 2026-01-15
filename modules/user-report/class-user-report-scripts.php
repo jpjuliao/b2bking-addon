@@ -1,5 +1,5 @@
 <?php
-namespace JPJULIAO\B2BKing\User_Dashboard;
+namespace JPJULIAO\B2BKing_Addons;
 
 class User_Report_Scripts
 {
@@ -570,7 +570,6 @@ class User_Report_Scripts
       'b2bking_demo' => apply_filters('b2bking_is_dashboard_demo', 0),
       'currency_symbol' => get_woocommerce_currency_symbol(),
     );
-
 
   }
 
