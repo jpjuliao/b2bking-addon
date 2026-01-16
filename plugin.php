@@ -39,8 +39,12 @@ require_once(
 require_once(
   PLUGIN_PATH . 'modules/variations-columns/class-variations-columns.php'
 );
+// require_once(
+//   PLUGIN_PATH . 'modules/bulk-actions/class-bulk-actions.php'
+// );
 
 new User_Report();
 new Guest_Info_Table();
 new B2B_Info_Table();
 new Variations_Columns();
+// new Bulk_Actions();
