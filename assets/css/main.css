@@ -40,3 +40,37 @@ a#b2bking_export_report_button {
     filter: grayscale(1);
   }
 }
+
+.b2bk_user_dashboard_popular_products {
+  border-bottom: 1px solid #e9ecef !important;
+  padding: 0 0 20px 0;
+
+  .product-item {
+    text-align: center;
+    border: 1px solid #e9ecef;
+    border-radius: 3px;
+    overflow: hidden;
+    padding: 20px 0 0 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+  }
+
+  .col-3 {
+    display: flex;
+    ;
+  }
+
+  .product-title {
+    padding: 0 10px;
+  }
+
+  p.product.woocommerce.add_to_cart_inline {
+    border: none !important;
+    padding: 10px 0 0 !important;
+
+    a {
+      margin-top: 10px;
+      display: flex;
+    }
+  }

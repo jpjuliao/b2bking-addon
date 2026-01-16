@@ -84,26 +84,7 @@ class User_Report
     if (empty($products)) {
       return;
     }
-    echo '<div class="b2bk_user_dashboard_popular_products">';
-    echo '<h3>' . esc_html__('Popular Products', 'b2bking') . '</h3>';
-    echo '<table>';
-    echo '<thead>';
-    echo '<tr>';
-    echo '<th>' . esc_html__('Name', 'b2bking') . '</th>';
-    echo '<th>' . esc_html__('Quantity', 'b2bking') . '</th>';
-    echo '</tr>';
-    echo '</thead>';
-    echo '<tbody>';
-    foreach ($products as $product_id => $quantity) {
-      $link = get_the_permalink($product_id);
-      echo '<tr>';
-      echo '<td><a href="' . $link . '">' . get_the_title($product_id) . '</a></td>';
-      echo '<td>' . $quantity . '</td>';
-      echo '</tr>';
-    }
-    echo '</tbody>';
-    echo '</table>';
-    echo '</div>';
+    require_once(PLUGIN_PATH . 'templates/products.php');
   }
 
 }
