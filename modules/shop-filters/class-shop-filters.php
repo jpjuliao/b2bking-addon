@@ -17,207 +17,196 @@ class Shop_Filters
     add_shortcode('shop_filters', array($this, 'render_shortcode'));
   }
 
-  public function render_shortcode($atts): string
+  public function render_shortcode(array $atts): string
   {
-    return implode('', [
-      $this->render_best_new_discounts_filter($atts),
-      $this->render_price_filter($atts),
-      $this->render_brands_filter($atts),
-      $this->render_product_tags_filter($atts),
-      $this->render_product_cats_filter($atts),
-    ]);
+    $shop_url = get_permalink(wc_get_page_id('shop'));
+    ob_start();
+    ?>
+    <form method="get" action="<?php echo esc_url($shop_url); ?>" class="shop-filters-form">
+      <?php
+      echo $this->render_price_filter($atts);
+      echo $this->render_best_new_discounts_filter($atts);
+      echo $this->render_brands_filter($atts);
+      echo $this->render_product_tags_filter($atts);
+      echo $this->render_product_cats_filter($atts);
+      ?>
+      <div class="shop-filters-control">
+        <button type="submit" class="apply-filters-btn">Apply Filters</button>
+      </div>
+    </form>
+    <?php
+    return ob_get_clean();
   }
 
-  public function filter_shop_query($query): void
+  public function filter_shop_query(\WP_Query $query): void
   {
     if (!$query->is_main_query() || !is_shop()) {
       return;
     }
 
-    $filter = isset($_GET['filter'])
-      ? sanitize_text_field($_GET['filter']) : '';
+    $filters = isset($_GET['filter']) ? (array) $_GET['filter'] : [];
+    $filters = array_map('sanitize_text_field', $filters);
 
-    switch ($filter) {
-      case 'best':
-        $query->set('meta_key', 'total_sales');
-        $query->set('orderby', 'meta_value_num');
-        $query->set('order', 'DESC');
-        break;
+    if (in_array('best', $filters)) {
+      $query->set('meta_key', 'total_sales');
+      $query->set('orderby', 'meta_value_num');
+      $query->set('order', 'DESC');
+    } elseif (in_array('new', $filters)) {
+      $date_query = array(
+        array(
+          'after' => '30 days ago',
+          'inclusive' => true,
+        ),
+      );
+      $query->set('date_query', $date_query);
+      $query->set('orderby', 'date');
+      $query->set('order', 'DESC');
+    } elseif (in_array('discounts', $filters)) {
+      $meta_query = WC()->query->get_meta_query();
+      $meta_query[] = array(
+        'key' => '_sale_price',
+        'value' => 0,
+        'compare' => '>',
+        'type' => 'numeric',
+      );
+      $query->set('meta_query', $meta_query);
+    }
 
-      case 'new':
-        $date_query = array(
-          array(
-            'after' => '30 days ago',
-            'inclusive' => true,
-          ),
-        );
-        $query->set('date_query', $date_query);
-        $query->set('orderby', 'date');
-        $query->set('order', 'DESC');
-        break;
+    $tax_query = [];
 
-      case 'discounts':
-        $meta_query = WC()->query->get_meta_query();
-        $meta_query[] = array(
-          'key' => '_sale_price',
-          'value' => 0,
-          'compare' => '>',
-          'type' => 'numeric',
-        );
-        $query->set('meta_query', $meta_query);
-        break;
+    $brand_filters = isset($_GET['brand']) ? (array) $_GET['brand'] : [];
+    $brand_filters = array_map('sanitize_text_field', $brand_filters);
+    if (!empty($brand_filters)) {
+      $tax_query[] = array(
+        'taxonomy' => 'product_brand',
+        'field' => 'slug',
+        'terms' => $brand_filters,
+        'operator' => 'IN',
+      );
+    }
+
+    $tag_filters = isset($_GET['product_tag']) ? (array) $_GET['product_tag'] : [];
+    $tag_filters = array_map('sanitize_text_field', $tag_filters);
+    if (!empty($tag_filters)) {
+      $tax_query[] = array(
+        'taxonomy' => 'product_tag',
+        'field' => 'slug',
+        'terms' => $tag_filters,
+        'operator' => 'IN',
+      );
+    }
+
+    $cat_filters = isset($_GET['product_cat']) ? (array) $_GET['product_cat'] : [];
+    $cat_filters = array_map('sanitize_text_field', $cat_filters);
+    if (!empty($cat_filters)) {
+      $tax_query[] = array(
+        'taxonomy' => 'product_cat',
+        'field' => 'slug',
+        'terms' => $cat_filters,
+        'operator' => 'IN',
+      );
+    }
+
+    if (!empty($tax_query)) {
+      $tax_query['relation'] = 'AND';
+      $query->set('tax_query', $tax_query);
     }
   }
 
-  public function render_best_new_discounts_filter($atts): string
+  public function render_best_new_discounts_filter(array $atts): string
   {
-    $shop_url = get_permalink(wc_get_page_id('shop'));
-    $current_filter = isset($_GET['filter'])
-      ? sanitize_text_field($_GET['filter']) : '';
+    $current_filters = isset($_GET['filter']) ? (array) $_GET['filter'] : [];
+    $current_filters = array_map('sanitize_text_field', $current_filters);
 
     $filters = array(
-      '' => 'All Products',
       'best' => 'Best Sellers',
       'new' => 'New Products',
       'discounts' => 'Discounts',
     );
 
-    ob_start();
-    ?>
-    <div class="shop-filters-control">
-      <h4>Filter Products:</h4>
-      <ul class="filter-buttons">
-        <?php foreach ($filters as $filter_key => $filter_label): ?>
-          <?php
-          $filter_url = $filter_key === ''
-            ? remove_query_arg('filter', $shop_url)
-            : add_query_arg('filter', $filter_key, $shop_url);
-          $is_active = $current_filter === $filter_key;
-          ?>
-          <li>
-            <a href="<?php echo esc_url($filter_url); ?>" class="filter-btn <?php echo $is_active ? 'active' : ''; ?>">
-              <?php if ($is_active): ?>
-                <strong><?php echo esc_html($filter_label); ?></strong>
-              <?php else: ?>
-                <?php echo esc_html($filter_label); ?>
-              <?php endif; ?>
-            </a>
-          </li>
-        <?php endforeach; ?>
-      </ul>
-    </div>
-    <?php
-    return ob_get_clean();
+    return $this->render_checkbox_list('Filter Products:', $filters, 'filter', $current_filters);
   }
 
-  public function render_product_tags_filter($atts): string
+  public function render_product_tags_filter(array $atts): string
   {
-    $shop_url = get_permalink(wc_get_page_id('shop'));
-    $current_filter = isset($_GET['filter'])
-      ? sanitize_text_field($_GET['filter']) : '';
+    $current_filters = isset($_GET['product_tag']) ? (array) $_GET['product_tag'] : [];
+    $current_filters = array_map('sanitize_text_field', $current_filters);
 
     $product_tags = get_terms([
       'taxonomy' => 'product_tag',
       'hide_empty' => false,
     ]);
 
-    ob_start();
-    ?>
-    <div class="shop-filters-control">
-      <h4>Product Tags:</h4>
-      <ul class="filter-buttons">
-        <?php foreach ($product_tags as $product_tag): ?>
-          <?php
-          $filter_url = $product_tag->slug === ''
-            ? remove_query_arg('filter', $shop_url)
-            : add_query_arg('filter', $product_tag->slug, $shop_url);
-          $is_active = $current_filter === $product_tag->slug;
-          ?>
-          <li>
-            <a href="<?php echo esc_url($filter_url); ?>" class="filter-btn <?php echo $is_active ? 'active' : ''; ?>">
-              <?php if ($is_active): ?>
-                <strong><?php echo esc_html($product_tag->name); ?></strong>
-              <?php else: ?>
-                <?php echo esc_html($product_tag->name); ?>
-              <?php endif; ?>
-            </a>
-          </li>
-        <?php endforeach; ?>
-      </ul>
-    </div>
-    <?php
-    return ob_get_clean();
+    $tags_array = [];
+    foreach ($product_tags as $tag) {
+      $tags_array[$tag->slug] = $tag->name;
+    }
+
+    return $this->render_checkbox_list('Product Tags:', $tags_array, 'product_tag', $current_filters);
   }
 
-  public function render_product_cats_filter($atts): string
+  public function render_product_cats_filter(array $atts): string
   {
-    $shop_url = get_permalink(wc_get_page_id('shop'));
-    $current_filter = isset($_GET['filter'])
-      ? sanitize_text_field($_GET['filter']) : '';
+    $current_filters = isset($_GET['product_cat']) ? (array) $_GET['product_cat'] : [];
+    $current_filters = array_map('sanitize_text_field', $current_filters);
 
     $product_cats = get_terms([
       'taxonomy' => 'product_cat',
       'hide_empty' => false,
     ]);
 
-    ob_start();
-    ?>
-    <div class="shop-filters-control">
-      <h4>Product Categories:</h4>
-      <ul class="filter-buttons">
-        <?php foreach ($product_cats as $product_cat): ?>
-          <?php
-          $filter_url = $product_cat->slug === ''
-            ? remove_query_arg('filter', $shop_url)
-            : add_query_arg('filter', $product_cat->slug, $shop_url);
-          $is_active = $current_filter === $product_cat->slug;
-          ?>
-          <li>
-            <a href="<?php echo esc_url($filter_url); ?>" class="filter-btn <?php echo $is_active ? 'active' : ''; ?>">
-              <?php if ($is_active): ?>
-                <strong><?php echo esc_html($product_cat->name); ?></strong>
-              <?php else: ?>
-                <?php echo esc_html($product_cat->name); ?>
-              <?php endif; ?>
-            </a>
-          </li>
-        <?php endforeach; ?>
-      </ul>
-    </div>
-    <?php
-    return ob_get_clean();
+    $cats_array = [];
+    foreach ($product_cats as $cat) {
+      $cats_array[$cat->slug] = $cat->name;
+    }
+
+    return $this->render_checkbox_list('Product Categories:', $cats_array, 'product_cat', $current_filters);
   }
-  public function render_brands_filter($atts): string
+
+  public function render_brands_filter(array $atts): string
   {
-    $shop_url = get_permalink(wc_get_page_id('shop'));
-    $current_filter = isset($_GET['filter'])
-      ? sanitize_text_field($_GET['filter']) : '';
+    $current_filters = isset($_GET['brand']) ? (array) $_GET['brand'] : [];
+    $current_filters = array_map('sanitize_text_field', $current_filters);
 
     $brands = get_terms([
       'taxonomy' => 'product_brand',
       'hide_empty' => false,
     ]);
 
+    $brands_array = [];
+    foreach ($brands as $brand) {
+      $brands_array[$brand->slug] = $brand->name;
+    }
+
+    return $this->render_checkbox_list('Brands:', $brands_array, 'brand', $current_filters);
+  }
+
+  public function render_checkbox_list(
+    string $title,
+    array $items,
+    string $input_name,
+    array $selected_values = []
+  ): string {
+    if (empty($items)) {
+      return '';
+    }
+
     ob_start();
     ?>
     <div class="shop-filters-control">
-      <h4>Brands:</h4>
-      <ul class="filter-buttons">
-        <?php foreach ($brands as $brand): ?>
+      <h4><?php echo esc_html($title); ?></h4>
+      <ul class="filter-checkboxes">
+        <?php foreach ($items as $value => $label): ?>
           <?php
-          $filter_url = $brand->slug === ''
-            ? remove_query_arg('filter', $shop_url)
-            : add_query_arg('filter', $brand->slug, $shop_url);
-          $is_active = $current_filter === $brand->slug;
+          $is_checked = in_array($value, $selected_values);
+          $checkbox_id = esc_attr($input_name . '_' . $value);
           ?>
           <li>
-            <a href="<?php echo esc_url($filter_url); ?>" class="filter-btn <?php echo $is_active ? 'active' : ''; ?>">
-              <?php if ($is_active): ?>
-                <strong><?php echo esc_html($brand->name); ?></strong>
-              <?php else: ?>
-                <?php echo esc_html($brand->name); ?>
-              <?php endif; ?>
-            </a>
+            <label for="<?php echo $checkbox_id; ?>">
+              <input type="checkbox" id="<?php echo $checkbox_id; ?>" name="<?php echo esc_attr($input_name); ?>[]"
+                value="<?php echo esc_attr($value); ?>" <?php checked($is_checked, true); ?>>
+              <span><?php echo esc_html($label); ?></span>
+            </label>
           </li>
         <?php endforeach; ?>
       </ul>
@@ -226,13 +215,8 @@ class Shop_Filters
     return ob_get_clean();
   }
 
-  public function render_price_filter($atts): string
+  public function render_price_filter(array $atts): string
   {
-    $shop_url = get_permalink(wc_get_page_id('shop'));
-    $current_filter = isset($_GET['filter'])
-      ? sanitize_text_field($_GET['filter']) : '';
-
-
     $products = get_posts([
       'post_type' => 'product',
       'posts_per_page' => -1,
