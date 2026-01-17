@@ -15,6 +15,7 @@ class Shop_Filters
   {
     add_action('pre_get_posts', array($this, 'filter_shop_query'));
     add_shortcode('shop_filters', array($this, 'render_shortcode'));
+    add_filter('request', array($this, 'clean_filter_url'));
   }
 
   public function render_shortcode(array $atts): string
@@ -36,6 +37,22 @@ class Shop_Filters
     </form>
     <?php
     return ob_get_clean();
+  }
+
+  public function clean_filter_url(array $query_vars): array
+  {
+    // Clean the REQUEST_URI by removing %5B%5D (encoded [])
+    if (isset($_SERVER['REQUEST_URI'])) {
+      $clean_uri = str_replace(['%5B', '%5D'], '', $_SERVER['REQUEST_URI']);
+
+      // Only redirect if the URI actually changed
+      if ($clean_uri !== $_SERVER['REQUEST_URI']) {
+        wp_redirect(home_url($clean_uri), 301);
+        exit;
+      }
+    }
+
+    return $query_vars;
   }
 
   public function filter_shop_query(\WP_Query $query): void
@@ -72,7 +89,11 @@ class Shop_Filters
       $query->set('meta_query', $meta_query);
     }
 
-    $tax_query = [];
+    // Get existing tax query from WooCommerce
+    $tax_query = $query->get('tax_query');
+    if (!is_array($tax_query)) {
+      $tax_query = [];
+    }
 
     $brand_filters = isset($_GET['brand']) ? (array) $_GET['brand'] : [];
     $brand_filters = array_map('sanitize_text_field', $brand_filters);
@@ -107,8 +128,12 @@ class Shop_Filters
       );
     }
 
-    if (!empty($tax_query)) {
-      $tax_query['relation'] = 'AND';
+    // Only set tax_query if we have custom filters
+    if (count($tax_query) > 0) {
+      // Set relation if we have multiple taxonomy queries
+      if (!isset($tax_query['relation'])) {
+        $tax_query['relation'] = 'AND';
+      }
       $query->set('tax_query', $tax_query);
     }
   }
@@ -194,25 +219,27 @@ class Shop_Filters
     ob_start();
     ?>
     <div class="shop-filters-control">
-      <h4><?php echo esc_html($title); ?></h4>
-      <ul class="filter-checkboxes">
-        <?php foreach ($items as $value => $label): ?>
-          <?php
-          $is_checked = in_array($value, $selected_values);
-          $checkbox_id = esc_attr($input_name . '_' . $value);
-          ?>
-          <li>
-            <label for="<?php echo $checkbox_id; ?>">
-              <input type="checkbox" id="<?php echo $checkbox_id; ?>" name="<?php echo esc_attr($input_name); ?>[]"
-                value="<?php echo esc_attr($value); ?>" <?php checked($is_checked, true); ?>>
-              <span><?php echo esc_html($label); ?></span>
-            </label>
-          </li>
-        <?php endforeach; ?>
-      </ul>
-    </div>
-    <?php
-    return ob_get_clean();
+      <h4>
+        <?php echo esc_html($title); ?>
+      </h4>
+        <ul class="filter-checkboxes">
+            <?php foreach ($items as $value => $label): ?>
+                <?php
+                $is_checked = in_array($value, $selected_values);
+                $checkbox_id = esc_attr($input_name . '_' . $value);
+                ?>
+                <li>
+                  <label for="<?php echo $checkbox_id; ?>">
+                    <input type="checkbox" id="<?php echo $checkbox_id; ?>" name="<?php echo esc_attr($input_name); ?>[]"
+                      value="<?php echo esc_attr($value); ?>" <?php checked($is_checked, true); ?>>
+                    <span><?php echo esc_html($label); ?></span>
+                  </label>
+                </li>
+            <?php endforeach; ?>
+          </ul>
+        </div>
+        <?php
+        return ob_get_clean();
   }
 
   public function render_price_filter(array $atts): string
@@ -233,16 +260,20 @@ class Shop_Filters
 
     ob_start();
     ?>
-    <div class="shop-filters-control">
-      <h4>Price:</h4>
-      <span>$ <?php echo esc_html($min_price); ?></span>
-      <input type="range" name="price_min" min="<?php echo esc_attr($min_price); ?>"
-        max="<?php echo esc_attr($max_price); ?>" value="<?php echo esc_attr($min_price); ?>">
-      <input type="range" name="price_max" min="<?php echo esc_attr($min_price); ?>"
-        max="<?php echo esc_attr($max_price); ?>" value="<?php echo esc_attr($max_price); ?>">
-      <span>$ <?php echo esc_html($max_price); ?></span>
-    </div>
-    <?php
-    return ob_get_clean();
+      <div class="shop-filters-control">
+        <h4>Price:</h4>
+        <span>$
+          <?php echo esc_html($min_price); ?>
+        </span>
+        <input type="range" name="price_min" min="<?php echo esc_attr($min_price); ?>"
+          max="<?php echo esc_attr($max_price); ?>" value="<?php echo esc_attr($min_price); ?>">
+        <input type="range" name="price_max" min="<?php echo esc_attr($min_price); ?>"
+          max="<?php echo esc_attr($max_price); ?>" value="<?php echo esc_attr($max_price); ?>">
+        <span>$
+          <?php echo esc_html($max_price); ?>
+        </span>
+      </div>
+      <?php
+      return ob_get_clean();
   }
 }
