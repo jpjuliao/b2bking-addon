@@ -20,7 +20,7 @@ class Shop_Filters_Renderer extends Shop_Filters_Base
       echo $this->render_product_price_filter($atts);
       echo $this->render_product_best_new_discounts_filter($atts);
       echo $this->render_product_taxonomies_filter($atts);
-      // echo $this->render_product_attributes_filter($atts);
+      echo $this->render_product_attributes_filter($atts);
       ?>
       <div class="shop-filters-control">
         <button type="submit" class="apply-filters-btn">Apply Filters</button>
@@ -32,6 +32,11 @@ class Shop_Filters_Renderer extends Shop_Filters_Base
 
   public function render_product_attributes_filter(array $atts): string
   {
+    $settings = $this->get_filter_setting('attributes');
+    if (!$settings['enabled']) {
+      return '';
+    }
+
     if (!function_exists('wc_get_attribute_taxonomies')) {
       return '';
     }
@@ -70,11 +75,26 @@ class Shop_Filters_Renderer extends Shop_Filters_Base
   {
     $current_filters = $this->get_filter_values('filter');
 
-    $filters = [
-      'best' => 'Best Sellers',
-      'new' => 'New Products',
-      'discounts' => 'Discounts',
-    ];
+    $filters = [];
+
+    $best_settings = $this->get_filter_setting('best_sellers');
+    if ($best_settings['enabled']) {
+      $filters['best'] = $best_settings['title'] ?: 'Best Sellers';
+    }
+
+    $new_settings = $this->get_filter_setting('new');
+    if ($new_settings['enabled']) {
+      $filters['new'] = $new_settings['title'] ?: 'New Products';
+    }
+
+    $discounts_settings = $this->get_filter_setting('discounts');
+    if ($discounts_settings['enabled']) {
+      $filters['discounts'] = $discounts_settings['title'] ?: 'Discounts';
+    }
+
+    if (empty($filters)) {
+      return '';
+    }
 
     return $this->render_checkbox_list(
       'Filter Products:',
@@ -86,23 +106,36 @@ class Shop_Filters_Renderer extends Shop_Filters_Base
 
   public function render_product_taxonomies_filter(array $atts): string
   {
-    return implode('', [
-      $this->render_simple_taxonomy_filter(
+    $outputs = [];
+
+    $tag_settings = $this->get_filter_setting('product_tag');
+    if ($tag_settings['enabled']) {
+      $outputs[] = $this->render_simple_taxonomy_filter(
         'product_tag',
-        'Product Tags:',
+        $tag_settings['title'] ?: 'Product Tags:',
         'product_tag'
-      ),
-      $this->render_simple_taxonomy_filter(
+      );
+    }
+
+    $cat_settings = $this->get_filter_setting('product_cat');
+    if ($cat_settings['enabled']) {
+      $outputs[] = $this->render_simple_taxonomy_filter(
         'product_cat',
-        'Product Categories:',
+        $cat_settings['title'] ?: 'Product Categories:',
         'product_cat'
-      ),
-      $this->render_simple_taxonomy_filter(
+      );
+    }
+
+    $brand_settings = $this->get_filter_setting('product_brand');
+    if ($brand_settings['enabled']) {
+      $outputs[] = $this->render_simple_taxonomy_filter(
         'product_brand',
-        'Brands:',
+        $brand_settings['title'] ?: 'Brands:',
         'product_brand'
-      )
-    ]);
+      );
+    }
+
+    return implode('', $outputs);
   }
 
   public function render_checkbox_list(
@@ -145,6 +178,12 @@ class Shop_Filters_Renderer extends Shop_Filters_Base
 
   public function render_product_price_filter(array $atts): string
   {
+    $settings = $this->get_filter_setting('price');
+    if (!$settings['enabled']) {
+      return '';
+    }
+    $title = $settings['title'] ?: 'Price:';
+
     global $wpdb;
 
     $min_price = 0;
@@ -170,7 +209,7 @@ class Shop_Filters_Renderer extends Shop_Filters_Base
     ob_start();
     ?>
     <div class="shop-filters-control">
-      <h4>Price:</h4>
+      <h4><?php echo esc_html($title); ?></h4>
       <span>$
         <?php echo esc_html($min_price); ?>
       </span>
@@ -184,5 +223,21 @@ class Shop_Filters_Renderer extends Shop_Filters_Base
     </div>
     <?php
     return ob_get_clean();
+  }
+
+  private function get_filter_setting($key)
+  {
+    $defaults = [
+      'enabled' => 0,
+      'title' => '',
+    ];
+
+    $settings = get_option('b2bking_addons_shop_filters_settings', []);
+
+    if (isset($settings[$key])) {
+      return wp_parse_args($settings[$key], $defaults);
+    }
+
+    return $defaults;
   }
 }
