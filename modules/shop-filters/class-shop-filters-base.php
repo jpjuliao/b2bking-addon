@@ -41,14 +41,14 @@ abstract class Shop_Filters_Base
       'hide_empty' => true, // Only show terms with products
     ];
 
-    // If we are on a shop/archive page, narrow down terms based on current filtered products
     if ($wp_query->is_main_query() && (is_shop() || is_product_taxonomy())) {
       $query_args = $wp_query->query_vars;
 
-      // Ensure we get all matching posts, not just the paged ones
+      unset($query_args['paged'], $query_args['page'], $query_args['offset']);
+
       $query_args['posts_per_page'] = 999999;
       $query_args['fields'] = 'ids';
-      $query_args['no_found_rows'] = true; // Optimization
+      $query_args['no_found_rows'] = true;
 
       // We need to remove the current taxonomy from the tax_query to allow selecting siblings 
       // (e.g. if I selected 'Red', I still want to see 'Blue' in the color filter)
