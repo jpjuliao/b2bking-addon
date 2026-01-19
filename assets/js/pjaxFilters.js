@@ -13,6 +13,13 @@
     }
   });
 
+  document.addEventListener('click', function (e) {
+    if (e.target.closest('.widget_price_filter form .button')) {
+      e.preventDefault();
+      shop_filters_pjax();
+    }
+  });
+
   function shop_filters_pjax() {
     var form = document.querySelector('.shop-filters-form');
 
@@ -33,6 +40,7 @@
         if (typeof woodmartThemeModule !== 'undefined') {
           woodmartThemeModule.removeDuplicatedStylesFromHTML(
             html, function (html) {
+              console.log(21234);
               context.html(html);
               afterRender();
               woodmartThemeModule.$document.trigger('wdShopPageInit');

@@ -50,31 +50,24 @@ abstract class Shop_Filters_Base
       $query_args['fields'] = 'ids';
       $query_args['no_found_rows'] = true;
 
-      // We need to remove the current taxonomy from the tax_query to allow selecting siblings 
-      // (e.g. if I selected 'Red', I still want to see 'Blue' in the color filter)
-      // BUT for strict narrowing down (showing only what is available given *other* filters), usually we KEEP it?
-      // Standard faceted search: 
-      // - Filter A (Brand) options should be narrowed by Filter B (Color).
-      // - Filter A options should NOT be narrowed by Filter A itself (multi-select behavior).
+      if (isset($_GET['min_price']) || isset($_GET['max_price'])) {
+        $meta_query = isset($query_args['meta_query']) ? $query_args['meta_query'] : [];
+        $price_query = ['key' => '_price', 'type' => 'numeric', 'compare' => 'BETWEEN'];
 
-      // However, simplified approach first: Just get all products matching the CURRENT query.
-      // This means if I selected "Red", I only see attributes available in "Red" products.
-      // If "Blue" is not in the list, I can't select it? That breaks OR logic.
+        $min = isset($_GET['min_price']) ? floatval($_GET['min_price']) : 0;
+        $max = isset($_GET['max_price']) ? floatval($_GET['max_price']) : 999999999;
 
-      // Correct approach for Faceted Navigation with OR logic support is complex.
-      // The user asked to "narrow down", usually enabling cross-filtering.
-      // Let's rely on standard 'object_ids' if available.
-
-      // Actually, if we pass object_ids to get_terms, it restricts the counts to those objects.
+        $price_query['value'] = [$min, $max];
+        $meta_query[] = $price_query;
+        $query_args['meta_query'] = $meta_query;
+      }
 
       $filtered_product_ids = get_posts($query_args);
 
       if (!empty($filtered_product_ids)) {
         $args['object_ids'] = $filtered_product_ids;
       } else {
-        // If query returns no results, technically no terms should be shown?
-        // Or maybe just return empty.
-        $args['object_ids'] = [0]; // Force empty result
+        $args['object_ids'] = [0];
       }
     }
 

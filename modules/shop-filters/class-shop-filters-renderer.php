@@ -17,6 +17,23 @@ class Shop_Filters_Renderer extends Shop_Filters_Base
     ?>
     <form method="get" action="<?php echo esc_url($shop_url); ?>" class="shop-filters-form">
       <?php
+      foreach ($_GET as $key => $value) {
+        if (in_array($key, ['filter', 'product_cat', 'product_tag', 'product_brand'])) {
+          continue;
+        }
+        if (strpos($key, 'filter_') === 0) {
+          continue;
+        }
+
+        if (is_array($value)) {
+          foreach ($value as $v) {
+            echo '<input type="hidden" name="' . esc_attr($key) . '[]" value="' . esc_attr($v) . '" />';
+          }
+        } else {
+          echo '<input type="hidden" name="' . esc_attr($key) . '" value="' . esc_attr($value) . '" />';
+        }
+      }
+
       echo $this->render_product_best_new_discounts_filter($atts);
       echo $this->render_product_taxonomies_filter($atts);
       echo $this->render_product_attributes_filter($atts);
