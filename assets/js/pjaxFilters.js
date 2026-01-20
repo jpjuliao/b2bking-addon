@@ -40,7 +40,6 @@
         if (typeof woodmartThemeModule !== 'undefined') {
           woodmartThemeModule.removeDuplicatedStylesFromHTML(
             html, function (html) {
-              console.log(21234);
               context.html(html);
               afterRender();
               woodmartThemeModule.$document.trigger('wdShopPageInit');
