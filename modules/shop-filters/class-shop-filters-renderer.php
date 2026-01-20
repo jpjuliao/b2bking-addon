@@ -59,24 +59,20 @@ class Shop_Filters_Renderer extends Shop_Filters_Base
     $section = $atts['section'];
 
     if ($section === 'best-new-discounts') {
-      return $this->render_product_best_new_discounts_filter($atts);
+      return $this->get_product_best_new_discounts_filter($atts);
     }
     if (in_array($section, ['product_tag', 'product_cat', 'product_brand'])) {
-      return $this->render_product_taxonomies_filter($atts, $section);
+      return $this->get_product_taxonomies_filter($atts, $section);
     }
     if ($section === 'attributes') {
-      return $this->render_product_attributes_filter($atts);
+      return $this->get_product_attributes_filter($atts);
     }
 
     return '';
   }
 
-  public function render_product_attributes_filter(array $atts): string
+  public function get_product_attributes_filter(array $atts): string
   {
-    $settings = $this->get_filter_setting('attributes');
-    if (!$settings['enabled']) {
-      return '';
-    }
 
     if (!function_exists('wc_get_attribute_taxonomies')) {
       return '';
@@ -109,32 +105,25 @@ class Shop_Filters_Renderer extends Shop_Filters_Base
       );
     }
 
-    return $output;
+    if (empty($output)) {
+      return 'No results found.';
+    } else {
+      return $output;
+    }
   }
 
-  public function render_product_best_new_discounts_filter(array $atts): string
+  public function get_product_best_new_discounts_filter(array $atts): string
   {
     $current_filters = $this->get_filter_values('filter');
 
     $filters = [];
 
-    $best_settings = $this->get_filter_setting('best_sellers');
-    if ($best_settings['enabled']) {
-      $filters['best'] = $best_settings['title'] ?: 'Best Sellers';
-    }
-
-    $new_settings = $this->get_filter_setting('new');
-    if ($new_settings['enabled']) {
-      $filters['new'] = $new_settings['title'] ?: 'New Products';
-    }
-
-    $discounts_settings = $this->get_filter_setting('discounts');
-    if ($discounts_settings['enabled']) {
-      $filters['discounts'] = $discounts_settings['title'] ?: 'Discounts';
-    }
+    $filters['best'] = 'Best Sellers';
+    $filters['new'] = 'New Products';
+    $filters['discounts'] = 'Discounts';
 
     if (empty($filters)) {
-      return '';
+      return 'No results found.';
     }
 
     return $this->render_checkbox_list(
@@ -145,7 +134,7 @@ class Shop_Filters_Renderer extends Shop_Filters_Base
     );
   }
 
-  public function render_product_taxonomies_filter(
+  public function get_product_taxonomies_filter(
     array $atts,
     string $section
   ): string {
@@ -174,62 +163,6 @@ class Shop_Filters_Renderer extends Shop_Filters_Base
       );
     }
 
-    return '';
-  }
-
-  public function render_checkbox_list(
-    string $title,
-    array $items,
-    string $input_name,
-    array $selected_values = []
-  ): string {
-    if (empty($items)) {
-      return '';
-    }
-
-    ob_start();
-    ?>
-    <div class="shop-filters-section">
-      <ul class="filter-checkboxes">
-        <?php foreach ($items as $value => $label): ?>
-          <?php
-          $is_checked = in_array($value, $selected_values);
-          $checkbox_id = esc_attr($input_name . '_' . $value);
-          ?>
-          <li>
-            <label for="<?php echo $checkbox_id; ?>">
-              <input type="checkbox" id="<?php echo $checkbox_id; ?>" name="<?php echo esc_attr($input_name); ?>[]"
-                value="<?php echo esc_attr($value); ?>" <?php checked($is_checked, true); ?>>
-              <span>
-                <?php echo esc_html($label); ?>
-              </span>
-            </label>
-          </li>
-        <?php endforeach; ?>
-      </ul>
-    </div>
-    <?php
-    return ob_get_clean();
-  }
-
-  private function get_filter_setting($key)
-  {
-    $defaults = [
-      'enabled' => 1,
-      'title' => '',
-    ];
-
-    $settings = get_option('b2bking_addons_shop_filters_settings', false);
-
-    if ($settings === false) {
-      return wp_parse_args(['enabled' => 1], $defaults);
-    }
-
-    if (isset($settings[$key])) {
-      $enabled = isset($settings[$key]['enabled']) ? $settings[$key]['enabled'] : 0;
-      return wp_parse_args(['enabled' => $enabled] + $settings[$key], $defaults);
-    }
-
-    return $defaults;
+    return 'No results found.';
   }
 }

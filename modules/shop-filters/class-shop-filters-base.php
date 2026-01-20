@@ -24,12 +24,20 @@ abstract class Shop_Filters_Base
     return [];
   }
 
-  protected function render_simple_taxonomy_filter(string $taxonomy, string $title, string $param_name): string
-  {
+  protected function render_simple_taxonomy_filter(
+    string $taxonomy,
+    string $title,
+    string $param_name
+  ): string {
     $options = $this->get_terms_options($taxonomy);
     $current_filters = $this->get_filter_values($param_name);
 
-    return $this->render_checkbox_list($title, $options, $param_name, $current_filters);
+    return $this->render_checkbox_list(
+      $title,
+      $options,
+      $param_name,
+      $current_filters
+    );
   }
 
   protected function get_terms_options(string $taxonomy): array
@@ -85,26 +93,6 @@ abstract class Shop_Filters_Base
     return $options;
   }
 
-  protected function render_checkbox_list(string $title, array $items, string $input_name, array $selected_values = []): string
-  {
-    ob_start();
-    ?>
-    <div class="filter-group">
-      <ul class="filter-options">
-        <?php foreach ($items as $value => $label): ?>
-          <li>
-            <label>
-              <input type="checkbox" name="<?php echo esc_attr($input_name); ?>[]" value="<?php echo esc_attr($value); ?>"
-                <?php checked(in_array($value, $selected_values)); ?>>
-              <?php echo esc_html($label); ?>
-            </label>
-          </li>
-        <?php endforeach; ?>
-      </ul>
-    </div>
-    <?php
-    return ob_get_clean();
-  }
   protected function remove_unwanted_shortcodes(
     string $content,
     array $whitelist = []
@@ -134,5 +122,40 @@ abstract class Shop_Filters_Base
     );
 
     return $content;
+  }
+
+  protected function render_checkbox_list(
+    string $title,
+    array $items,
+    string $input_name,
+    array $selected_values = []
+  ): string {
+    ob_start();
+    ?>
+    <div class="shop-filters-section">
+      <ul class="filter-checkboxes">
+        <?php if (empty($items)): ?>
+          <li>No results found.</li>
+        <?php else: ?>
+          <?php foreach ($items as $value => $label): ?>
+            <?php
+            $is_checked = in_array($value, $selected_values);
+            $checkbox_id = esc_attr($input_name . '_' . $value);
+            ?>
+            <li>
+              <label for="<?php echo $checkbox_id; ?>">
+                <input type="checkbox" id="<?php echo $checkbox_id; ?>" name="<?php echo esc_attr($input_name); ?>[]"
+                  value="<?php echo esc_attr($value); ?>" <?php checked($is_checked, true); ?>>
+                <span>
+                  <?php echo esc_html($label); ?>
+                </span>
+              </label>
+            </li>
+          <?php endforeach; ?>
+        <?php endif; ?>
+      </ul>
+    </div>
+    <?php
+    return ob_get_clean();
   }
 }
