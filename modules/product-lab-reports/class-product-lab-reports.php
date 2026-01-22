@@ -113,15 +113,16 @@ class Product_Lab_Reports
     $rows = [];
 
     foreach ($variations as $variation) {
-      $attachment_id = get_post_meta($variation['variation_id'], '_lab_report', true);
+      $attachment_id = get_post_meta(
+        $variation['variation_id'],
+        '_lab_report',
+        true
+      );
 
-      if (!$attachment_id) {
-        continue;
-      }
+      $file_url = $attachment_id
+        ? wp_get_attachment_url($attachment_id)
+        : false;
 
-      $file_url = wp_get_attachment_url($attachment_id);
-      $file_name = basename($file_url);
-      $date_tested = get_post_meta($variation['variation_id'], '_lab_report_date', true);
       $attributes = [];
 
       foreach ($variation['attributes'] as $key => $value) {
@@ -137,10 +138,12 @@ class Product_Lab_Reports
       $variation_name = implode(', ', $attributes);
 
       $rows[] = sprintf(
-        '<tr><td>%s</td><td><a href="%s" class="button" download>%s</a></td></tr>',
+        '<tr><td>%s</td><td>%s</td></tr>',
         esc_html($variation_name),
-        esc_url($file_url),
-        esc_html__('Download', 'woocommerce')
+        $file_url
+        ? '<a href="' . $file_url . '" class="button">'
+        . esc_html__('Download', 'woocommerce') . '</a>'
+        : esc_html__('N/A', 'woocommerce')
       );
     }
 
