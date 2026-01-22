@@ -1,19 +1,11 @@
 jQuery(document).ready(function ($) {
-  let mediaUploader;
-
   $(document).on('click', '.upload-lab-report', function (e) {
     e.preventDefault();
 
     const button = $(this);
     const loop = button.data('loop');
-    const container = button.closest('.form-row');
 
-    if (mediaUploader) {
-      mediaUploader.open();
-      return;
-    }
-
-    mediaUploader = wp.media({
+    const mediaUploader = wp.media({
       title: 'Select Lab Report PDF',
       button: {
         text: 'Use this PDF'
@@ -26,10 +18,10 @@ jQuery(document).ready(function ($) {
 
     mediaUploader.on('select', function () {
       const attachment = mediaUploader.state().get('selection').first().toJSON();
-      container.find('.lab-report-id').val(attachment.id);
-      container.find('.lab-report-filename').text(attachment.filename);
+      $('#lab-report-id-' + loop).val(attachment.id);
+      $('#lab-report-filename-' + loop).text(attachment.filename);
       button.text('Change PDF');
-      container.find('.remove-lab-report').show();
+      button.siblings('.remove-lab-report').show();
     });
 
     mediaUploader.open();
@@ -39,11 +31,11 @@ jQuery(document).ready(function ($) {
     e.preventDefault();
 
     const button = $(this);
-    const container = button.closest('.form-row');
+    const loop = button.data('loop');
 
-    container.find('.lab-report-id').val('');
-    container.find('.lab-report-filename').text('');
-    container.find('.upload-lab-report').text('Upload PDF');
+    $('#lab-report-id-' + loop).val('');
+    $('#lab-report-filename-' + loop).text('');
+    button.siblings('.upload-lab-report').text('Upload PDF');
     button.hide();
   });
 });

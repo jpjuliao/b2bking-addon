@@ -43,28 +43,25 @@ class Product_Lab_Reports
     ?>
     <div class="form-row form-row-full">
       <p class="form-field">
-        <label>
-          <?php echo esc_html__('Lab Report', 'woocommerce'); ?>
-        </label>
+        <label><?php echo esc_html__('Lab Report', 'woocommerce'); ?></label>
         <input type="hidden" name="lab_report[<?php echo esc_attr($loop); ?>]" class="lab-report-id"
-          value="<?php echo esc_attr($attachment_id); ?>" />
-        <button type="button" class="button upload-lab-report" data-loop="<?php echo esc_attr($loop); ?>">
+          id="lab-report-id-<?php echo esc_attr($loop); ?>" value="<?php echo esc_attr($attachment_id); ?>" />
+        <button type="button" class="button upload-lab-report" data-loop="<?php echo esc_attr($loop); ?>"
+          data-variation-id="<?php echo esc_attr($variation->ID); ?>">
           <?php echo $attachment_id ? esc_html__('Change PDF', 'woocommerce') : esc_html__('Upload PDF', 'woocommerce'); ?>
         </button>
         <button type="button" class="button remove-lab-report" data-loop="<?php echo esc_attr($loop); ?>"
+          data-variation-id="<?php echo esc_attr($variation->ID); ?>"
           style="<?php echo $attachment_id ? '' : 'display:none;'; ?>">
           <?php echo esc_html__('Remove', 'woocommerce'); ?>
         </button>
-        <span class="lab-report-filename">
-          <?php echo esc_html($file_name); ?>
-        </span>
+        <span class="lab-report-filename"
+          id="lab-report-filename-<?php echo esc_attr($loop); ?>"><?php echo esc_html($file_name); ?></span>
       </p>
       <p class="form-field">
-        <label>
-          <?php echo esc_html__('Date Tested', 'woocommerce'); ?>
-        </label>
+        <label><?php echo esc_html__('Date Tested', 'woocommerce'); ?></label>
         <input type="date" name="lab_report_date[<?php echo esc_attr($loop); ?>]"
-          value="<?php echo esc_attr($date_tested); ?>" />
+          id="lab-report-date-<?php echo esc_attr($loop); ?>" value="<?php echo esc_attr($date_tested); ?>" />
       </p>
     </div>
     <?php
@@ -77,7 +74,12 @@ class Product_Lab_Reports
     }
 
     if (isset($_POST['lab_report_date'][$loop])) {
-      update_post_meta($variation_id, '_lab_report_date', sanitize_text_field($_POST['lab_report_date'][$loop]));
+      $date = sanitize_text_field($_POST['lab_report_date'][$loop]);
+      if (!empty($date)) {
+        update_post_meta($variation_id, '_lab_report_date', $date);
+      } else {
+        delete_post_meta($variation_id, '_lab_report_date');
+      }
     }
   }
 
@@ -118,10 +120,8 @@ class Product_Lab_Reports
       $variation_name = implode(', ', $attributes);
 
       $rows[] = sprintf(
-        '<tr><td>%s</td><td>%s</td><td><a href="%s" class="button" download>%s</a></td></tr>',
-        // esc_html($file_name),
+        '<tr><td>%s</td><td><a href="%s" class="button" download>%s</a></td></tr>',
         esc_html($variation_name),
-        esc_html($date_tested ?: 'N/A'),
         esc_url($file_url),
         esc_html__('Download', 'woocommerce')
       );
@@ -133,9 +133,7 @@ class Product_Lab_Reports
 
     $table = '<table class="lab-reports-table">';
     $table .= '<thead><tr>';
-    // $table .= '<th>' . esc_html__('File Name', 'woocommerce') . '</th>';
-    $table .= '<th>' . esc_html__('Product Variation', 'woocommerce') . '</th>';
-    $table .= '<th>' . esc_html__('Date Tested', 'woocommerce') . '</th>';
+    $table .= '<th>' . esc_html__('Product', 'woocommerce') . '</th>';
     $table .= '<th>' . esc_html__('Download', 'woocommerce') . '</th>';
     $table .= '</tr></thead>';
     $table .= '<tbody>' . implode('', $rows) . '</tbody>';
