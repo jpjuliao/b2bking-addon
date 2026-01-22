@@ -58,6 +58,10 @@ function get_modules(): array
       'filename' => 'product-lab-reports/class-product-lab-reports',
       'enabled' => true,
     ],
+    'Products_Shortcode_Taxonomy' => [
+      'filename' => 'products-by-brand/class-products-by-brand',
+      'enabled' => true,
+    ],
   ];
 }
 

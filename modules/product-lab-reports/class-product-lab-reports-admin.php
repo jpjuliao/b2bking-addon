@@ -102,7 +102,6 @@ class Lab_Reports_Admin
             <th>Product</th>
             <th>Variation</th>
             <th>File Name</th>
-            <th>Date Tested</th>
             <th>Actions</th>
           </tr>
         </thead>
@@ -125,7 +124,6 @@ class Lab_Reports_Admin
                 </td>
                 <td><?php echo esc_html($data['variation_name']); ?></td>
                 <td><?php echo esc_html($file_name); ?></td>
-                <td><?php echo esc_html($data['date_tested'] ?: 'N/A'); ?></td>
                 <td>
                   <?php if ($file_url): ?>
                     <a href="<?php echo esc_url($file_url); ?>" class="button button-small" download>Download</a>
