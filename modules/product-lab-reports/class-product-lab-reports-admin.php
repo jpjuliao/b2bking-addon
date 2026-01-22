@@ -33,6 +33,8 @@ class Lab_Reports_Admin
 
   public function render_admin_page()
   {
+    $filter = isset($_GET['lab_report_filter']) ? sanitize_text_field($_GET['lab_report_filter']) : 'all';
+
     $args = [
       'type' => 'variable',
       'status' => 'publish',
@@ -47,6 +49,14 @@ class Lab_Reports_Admin
         $variation_id = $variation_data['variation_id'];
         $lab_report_id = get_post_meta($variation_id, '_lab_report', true);
         $date_tested = get_post_meta($variation_id, '_lab_report_date', true);
+
+        if ($filter === 'with_file' && empty($lab_report_id)) {
+          continue;
+        }
+
+        if ($filter === 'without_file' && !empty($lab_report_id)) {
+          continue;
+        }
 
         $attributes = [];
         foreach ($variation_data['attributes'] as $key => $value) {
@@ -71,6 +81,21 @@ class Lab_Reports_Admin
     ?>
     <div class="wrap">
       <h1>Lab Reports</h1>
+
+      <div class="tablenav top">
+        <div class="alignleft actions">
+          <form method="get">
+            <input type="hidden" name="page" value="lab-reports">
+            <select name="lab_report_filter" id="lab_report_filter">
+              <option value="all" <?php selected($filter, 'all'); ?>>All Variations</option>
+              <option value="with_file" <?php selected($filter, 'with_file'); ?>>With Lab Report</option>
+              <option value="without_file" <?php selected($filter, 'without_file'); ?>>Without Lab Report</option>
+            </select>
+            <input type="submit" class="button" value="Filter">
+          </form>
+        </div>
+      </div>
+
       <table class="wp-list-table widefat fixed striped">
         <thead>
           <tr>

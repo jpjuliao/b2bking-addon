@@ -144,7 +144,7 @@ class Product_Lab_Reports
         '<tr><td>%s</td><td>%s</td></tr>',
         esc_html($variation_name),
         $file_url
-        ? '<a href="' . $file_url . '" class="button">'
+        ? '<a href="' . $file_url . '" class="button" download>'
         . esc_html__('Download', 'woocommerce') . '</a>'
         : esc_html__('N/A', 'woocommerce')
       );
