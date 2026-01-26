@@ -39,7 +39,7 @@ class Multiple_Addresses
       $this,
       'ajax_set_default_address'
     ));
-    add_action('woocommerce_after_checkout_shipping_form', array(
+    add_action('woocommerce_before_checkout_shipping_form', array(
       $this,
       'checkout_address_selector'
     ));
@@ -91,11 +91,43 @@ class Multiple_Addresses
   public function get_user_addresses(int $user_id): array
   {
     $addresses = get_user_meta($user_id, '_wc_multiple_addresses', true);
-    return $addresses ? $addresses : array();
+    $addresses = $addresses ? $addresses : array();
+
+    $core_address = array(
+      'first_name' => get_user_meta($user_id, 'shipping_first_name', true),
+      'last_name' => get_user_meta($user_id, 'shipping_last_name', true),
+      'company' => get_user_meta($user_id, 'shipping_company', true),
+      'address_1' => get_user_meta($user_id, 'shipping_address_1', true),
+      'address_2' => get_user_meta($user_id, 'shipping_address_2', true),
+      'city' => get_user_meta($user_id, 'shipping_city', true),
+      'state' => get_user_meta($user_id, 'shipping_state', true),
+      'postcode' => get_user_meta($user_id, 'shipping_postcode', true),
+      'country' => get_user_meta($user_id, 'shipping_country', true),
+      'phone' => get_user_meta($user_id, 'shipping_phone', true),
+    );
+
+    if (array_filter($core_address)) {
+      $addresses['wc_core_shipping'] = $core_address;
+    }
+
+    return $addresses;
   }
 
   public function save_user_addresses(int $user_id, array $addresses): void
   {
+    if (isset($addresses['wc_core_shipping'])) {
+      $core = $addresses['wc_core_shipping'];
+      $fields = array('first_name', 'last_name', 'company', 'address_1', 'address_2', 'city', 'state', 'postcode', 'country', 'phone');
+
+      foreach ($fields as $field) {
+        if (isset($core[$field])) {
+          update_user_meta($user_id, 'shipping_' . $field, $core[$field]);
+        }
+      }
+
+      unset($addresses['wc_core_shipping']);
+    }
+
     update_user_meta($user_id, '_wc_multiple_addresses', $addresses);
   }
 
@@ -251,115 +283,6 @@ class Multiple_Addresses
         <?php endif; ?>
       </div>
     </div>
-
-    <script type="text/javascript">
-      jQuery(document).ready(function ($) {
-        var addresses = <?php echo json_encode($addresses); ?>;
-
-        $('#add-new-address').on('click', function () {
-          $('#address-form').show();
-          $('#save-address-form')[0].reset();
-          $('#address_id').val('');
-        });
-
-        $('#cancel-address').on('click', function () {
-          $('#address-form').hide();
-          $('#save-address-form')[0].reset();
-        });
-
-        $('.edit-address').on('click', function () {
-          var addressId = $(this).data('id');
-          var address = addresses[addressId];
-
-          $('#address_id').val(addressId);
-          $('#first_name').val(address.first_name);
-          $('#last_name').val(address.last_name);
-          $('#company').val(address.company);
-          $('#address_1').val(address.address_1);
-          $('#address_2').val(address.address_2);
-          $('#city').val(address.city);
-          $('#state').val(address.state);
-          $('#postcode').val(address.postcode);
-          $('#country').val(address.country);
-          $('#phone').val(address.phone);
-
-          $('#address-form').show();
-        });
-
-        $('#save-address-form').on('submit', function (e) {
-          e.preventDefault();
-
-          $.ajax({
-            url: wcMultipleAddresses.ajax_url,
-            type: 'POST',
-            data: {
-              action: 'wc_save_address',
-              nonce: wcMultipleAddresses.nonce,
-              address_id: $('#address_id').val(),
-              first_name: $('#first_name').val(),
-              last_name: $('#last_name').val(),
-              company: $('#company').val(),
-              address_1: $('#address_1').val(),
-              address_2: $('#address_2').val(),
-              city: $('#city').val(),
-              state: $('#state').val(),
-              postcode: $('#postcode').val(),
-              country: $('#country').val(),
-              phone: $('#phone').val()
-            },
-            success: function (response) {
-              if (response.success) {
-                location.reload();
-              } else {
-                alert(response.data);
-              }
-            }
-          });
-        });
-
-        $('.delete-address').on('click', function () {
-          if (!confirm('<?php _e('Are you sure you want to delete this address?', 'woocommerce'); ?>')) {
-            return;
-          }
-
-          var addressId = $(this).data('id');
-
-          $.ajax({
-            url: wcMultipleAddresses.ajax_url,
-            type: 'POST',
-            data: {
-              action: 'wc_delete_address',
-              nonce: wcMultipleAddresses.nonce,
-              address_id: addressId
-            },
-            success: function (response) {
-              if (response.success) {
-                location.reload();
-              }
-            }
-          });
-        });
-
-        $('.set-default-address').on('click', function () {
-          var addressId = $(this).data('id');
-
-          $.ajax({
-            url: wcMultipleAddresses.ajax_url,
-            type: 'POST',
-            data: {
-              action: 'wc_set_default_address',
-              nonce: wcMultipleAddresses.nonce,
-              address_id: addressId
-            },
-            success: function (response) {
-              if (response.success) {
-                location.reload();
-              }
-            }
-          });
-        });
-      });
-    </script>
     <?php
   }
 
@@ -414,7 +337,15 @@ class Multiple_Addresses
     $address_id = sanitize_text_field($_POST['address_id']);
 
     if (isset($addresses[$address_id])) {
-      unset($addresses[$address_id]);
+      if ($address_id === 'wc_core_shipping') {
+        $fields = array('first_name', 'last_name', 'company', 'address_1', 'address_2', 'city', 'state', 'postcode', 'country', 'phone');
+        foreach ($fields as $field) {
+          update_user_meta($user_id, 'shipping_' . $field, '');
+        }
+        unset($addresses[$address_id]);
+      } else {
+        unset($addresses[$address_id]);
+      }
       $this->save_user_addresses($user_id, $addresses);
 
       $default_id = get_user_meta($user_id, '_wc_default_address_id', true);
@@ -475,44 +406,6 @@ class Multiple_Addresses
         <?php endforeach; ?>
       </select>
     </div>
-
-    <script type="text/javascript">
-      jQuery(document).ready(function ($) {
-        var addresses = <?php echo json_encode($addresses); ?>;
-
-        $('#selected_address_id').on('change', function () {
-          var addressId = $(this).val();
-
-          if (addressId && addresses[addressId]) {
-            var address = addresses[addressId];
-            $('#shipping_first_name').val(address.first_name);
-            $('#shipping_last_name').val(address.last_name);
-            $('#shipping_company').val(address.company);
-            $('#shipping_address_1').val(address.address_1);
-            $('#shipping_address_2').val(address.address_2);
-            $('#shipping_city').val(address.city);
-            $('#shipping_state').val(address.state);
-            $('#shipping_postcode').val(address.postcode);
-            $('#shipping_country').val(address.country).trigger('change');
-          } else {
-            $('#shipping_first_name').val('');
-            $('#shipping_last_name').val('');
-            $('#shipping_company').val('');
-            $('#shipping_address_1').val('');
-            $('#shipping_address_2').val('');
-            $('#shipping_city').val('');
-            $('#shipping_state').val('');
-            $('#shipping_postcode').val('');
-            $('#shipping_country').val('').trigger('change');
-          }
-        });
-
-        var defaultId = '<?php echo esc_js($default_address_id); ?>';
-        if (defaultId) {
-          $('#selected_address_id').val(defaultId).trigger('change');
-        }
-      });
-    </script>
     <?php
   }
 
