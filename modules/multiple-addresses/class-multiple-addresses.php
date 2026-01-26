@@ -85,6 +85,10 @@ class Multiple_Addresses
       $addresses = $this->get_user_addresses($user_id);
       $default_address_id = get_user_meta($user_id, '_wc_default_address_id', true);
 
+      if (empty($default_address_id) && !empty($addresses)) {
+        $default_address_id = array_key_first($addresses);
+      }
+
       wp_enqueue_script('wc-multiple-addresses', plugin_dir_url(__FILE__) . 'assets/js/script.js', array('jquery'), '1.0.0', true);
       wp_localize_script('wc-multiple-addresses', 'wcMultipleAddresses', array(
         'ajax_url' => admin_url('admin-ajax.php'),
@@ -395,6 +399,10 @@ class Multiple_Addresses
 
     if (empty($addresses)) {
       return;
+    }
+
+    if (empty($default_address_id)) {
+      $default_address_id = array_key_first($addresses);
     }
 
     ?>
