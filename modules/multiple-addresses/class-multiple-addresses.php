@@ -69,9 +69,10 @@ class Multiple_Addresses
   {
     $new_items = array();
     foreach ($items as $key => $value) {
-      $new_items[$key] = $value;
       if ($key === 'edit-address') {
         $new_items['addresses'] = __('My Addresses', 'woocommerce');
+      } else {
+        $new_items[$key] = $value;
       }
     }
     return $new_items;
