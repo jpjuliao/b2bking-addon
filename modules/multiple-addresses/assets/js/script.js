@@ -219,7 +219,7 @@ jQuery(document).ready(function ($) {
           dataType: "json",
           data: {
             q: request.term,
-            limit: 5,
+            limit: 20,
             lang: 'en'
           },
           success: function (data) {
@@ -235,7 +235,6 @@ jQuery(document).ready(function ($) {
 
                   label += ', ' + props.city + ', ' + props.state + ' ' + props.postcode;
 
-                  // Map state name to code if possible
                   var stateCode = usStates[props.state] || props.state;
 
                   suggestions.push({
