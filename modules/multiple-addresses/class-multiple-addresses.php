@@ -85,11 +85,22 @@ class Multiple_Addresses
       $addresses = $this->get_user_addresses($user_id);
       $default_address_id = get_user_meta($user_id, '_wc_default_address_id', true);
 
+      wp_enqueue_style(
+        'wc-multiple-addresses',
+        plugin_dir_url(__FILE__) . 'assets/css/style.css'
+      );
+
       if (empty($default_address_id) && !empty($addresses)) {
         $default_address_id = array_key_first($addresses);
       }
 
-      wp_enqueue_script('wc-multiple-addresses', plugin_dir_url(__FILE__) . 'assets/js/script.js', array('jquery'), '1.0.0', true);
+      wp_enqueue_script(
+        'wc-multiple-addresses',
+        plugin_dir_url(__FILE__) . 'assets/js/script.js',
+        array('jquery'),
+        '1.0.0',
+        true
+      );
       wp_localize_script('wc-multiple-addresses', 'wcMultipleAddresses', array(
         'ajax_url' => admin_url('admin-ajax.php'),
         'nonce' => wp_create_nonce('wc_multiple_addresses'),
@@ -154,11 +165,11 @@ class Multiple_Addresses
         <?php _e('Manage Your Addresses', 'woocommerce'); ?>
       </h3>
 
-      <button id="add-new-address" class="button">
+      <button id="add-new-address" class="button add-new-address">
         <?php _e('Add New Address', 'woocommerce'); ?>
       </button>
 
-      <div id="address-form" style="display:none; margin-top: 20px; padding: 20px; border: 1px solid #ddd;">
+      <div id="address-form" class="address-form">
         <h4>
           <?php _e('Address Details', 'woocommerce'); ?>
         </h4>
@@ -235,16 +246,16 @@ class Multiple_Addresses
         </form>
       </div>
 
-      <div id="addresses-list" style="margin-top: 30px;">
+      <div id="addresses-list" class="address-book">
         <?php if (empty($addresses)): ?>
           <p>
             <?php _e('No addresses saved yet.', 'woocommerce'); ?>
           </p>
         <?php else: ?>
           <?php foreach ($addresses as $id => $address): ?>
-            <div class="address-item" style="margin-bottom: 20px; padding: 15px; border: 1px solid #ddd;">
+            <div class="address-item">
               <?php if ($default_address_id == $id): ?>
-                <span style="background: #0073aa; color: white; padding: 2px 8px; font-size: 12px;">
+                <span class="default-address">
                   <?php _e('Default', 'woocommerce'); ?>
                 </span>
               <?php endif; ?>
@@ -429,7 +440,6 @@ class Multiple_Addresses
     if (isset($_POST['selected_address_id']) && !empty($_POST['selected_address_id'])) {
       update_post_meta($order_id, '_selected_address_id', sanitize_text_field($_POST['selected_address_id']));
     } elseif (isset($_POST['selected_address_id']) && empty($_POST['selected_address_id'])) {
-      // Logic for new address - only if necessary fields are present
       if (
         empty($_POST['shipping_first_name']) ||
         empty($_POST['shipping_address_1']) ||
@@ -454,6 +464,14 @@ class Multiple_Addresses
           'country' => sanitize_text_field($_POST['shipping_country'] ?? ''),
           'phone' => sanitize_text_field($_POST['shipping_phone'] ?? '')
         );
+
+        foreach ($addresses as $existing_id => $existing_address) {
+          $diff = array_diff_assoc($new_address, $existing_address);
+          if (empty($diff)) {
+            update_post_meta($order_id, '_selected_address_id', $existing_id);
+            return;
+          }
+        }
 
         $address_id = uniqid('addr_');
         $addresses[$address_id] = $new_address;

@@ -160,7 +160,6 @@ jQuery(document).ready(function ($) {
       }
     });
 
-    // Trigger change on init if a value is selected (handled by defaultId logic below but also need to handle browser cached values)
     if ($('#selected_address_id').val()) {
       $('#selected_address_id').trigger('change');
     } else if (defaultId) {

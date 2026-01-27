@@ -1,0 +1,45 @@
+.address-book {
+  display: grid;
+  gap: 20px;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+
+  .address-item {
+    padding: 15px;
+    border: 1px solid #ddd;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-around;
+
+    p {
+      margin: 0;
+    }
+
+    .button {
+      margin-top: 4px;
+    }
+
+    .default-address {
+      align-self: flex-start;
+    }
+  }
+
+  .default-address {
+    background: #0073aa;
+    color: white;
+    padding: 2px 8px;
+    font-size: 12px;
+  }
+}
+
+.woocommerce-addresses {
+  .button.add-new-address {
+    margin-bottom: 20px;
+  }
+}
+
+.address-form {
+  display: none;
+  margin-bottom: 20px;
+  padding: 20px;
+  border: 1px solid #ddd;
+}
