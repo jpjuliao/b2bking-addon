@@ -16,14 +16,13 @@ jQuery(document).ready(function ($) {
       $('#save-address-form')[0].reset();
       $('#address_id').val('');
 
-      // Initialize autocomplete for new address form
       photonAddressAutocomplete('#address_1', function (data) {
         $('#address_1').val(data.line1);
         $('#city').val(data.city);
         $('#state').val(data.state).trigger('change');
         $('#shipping_state').val(data.state).trigger('change');
         $('#postcode').val(data.postcode);
-        $('#country').val('US').trigger('change'); // Usually this is an input type text or select
+        $('#country').val('US').trigger('change');
       });
     });
 
@@ -52,7 +51,6 @@ jQuery(document).ready(function ($) {
 
       $('#address-form').show();
 
-      // Initialize autocomplete for edit form too
       photonAddressAutocomplete('#address_1', function (data) {
         $('#address_1').val(data.line1);
         $('#city').val(data.city);
@@ -149,7 +147,6 @@ jQuery(document).ready(function ($) {
     var addresses = wcMultipleAddresses.addresses || {};
     var defaultId = wcMultipleAddresses.default_address_id || '';
 
-    // Initialize autocomplete for checkout
     photonAddressAutocomplete('#shipping_address_1', function (data) {
       $('#shipping_address_1').val(data.line1);
       $('#shipping_city').val(data.city);
