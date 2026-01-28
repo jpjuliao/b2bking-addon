@@ -1,4 +1,4 @@
-document.addEventListener('DOMContentLoaded', (jQuery) => {
+document.addEventListener('DOMContentLoaded', () => {
   if (typeof jQuery === 'undefined') {
     console.error('[Multiple Addresses] jQuery is not defined');
     return;
@@ -134,7 +134,9 @@ document.addEventListener('DOMContentLoaded', (jQuery) => {
     }
 
     selectAll('.delete-address').forEach((btn) => {
-      btn.addEventListener('click', () => {
+      btn.addEventListener('click', (e) => {
+        e.preventDefault();
+
         if (
           !confirm(wcMultipleAddresses.delete_confirm
             || 'Are you sure you want to delete this address?')
@@ -142,7 +144,7 @@ document.addEventListener('DOMContentLoaded', (jQuery) => {
           return;
         }
 
-        const addressId = this.dataset.id;
+        const addressId = btn.dataset.id;
         const formData = new URLSearchParams();
         const values = [
           ['action', 'wc_delete_address'],
@@ -172,8 +174,10 @@ document.addEventListener('DOMContentLoaded', (jQuery) => {
     });
 
     selectAll('.set-default-address').forEach((btn) => {
-      btn.addEventListener('click', () => {
-        const addressId = this.dataset.id;
+      btn.addEventListener('click', (e) => {
+        e.preventDefault();
+
+        const addressId = btn.dataset.id;
         const formData = new URLSearchParams();
         formData.append('action', 'wc_set_default_address');
         formData.append('nonce', wcMultipleAddresses.nonce);
@@ -350,4 +354,4 @@ document.addEventListener('DOMContentLoaded', (jQuery) => {
     initCheckoutAddressSelector();
   }
 
-})(jQuery);
+});
