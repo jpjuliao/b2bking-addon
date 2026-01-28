@@ -1,5 +1,14 @@
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', (jQuery) => {
+  if (typeof jQuery === 'undefined') {
+    console.error('[Multiple Addresses] jQuery is not defined');
+    return;
+  }
+  if (typeof jQuery.ui === 'undefined') {
+    console.error('[Multiple Addresses] jQuery UI is not defined');
+    return;
+  }
 
+  const $ = jQuery;
   const select = (selector) => document.querySelector(selector);
   const selectAll = (selector) => document.querySelectorAll(selector);
   const elemID = (element) => document.getElementById(element);
@@ -253,11 +262,11 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   const photonAddressAutocomplete = (selector, onSelect) => {
-    if (typeof jQuery === 'undefined' || !jQuery(selector).length) return;
+    if (!$(selector).length) return;
 
     const usStates = wcMultipleAddresses.us_states;
 
-    jQuery(selector).autocomplete({
+    $(selector).autocomplete({
       source: (request, response) => {
         const url = new URL(wcMultipleAddresses.photon_url);
         url.searchParams.append('q', request.term);
@@ -268,7 +277,10 @@ document.addEventListener('DOMContentLoaded', () => {
           .then((res) => res.json())
           .then((data) => createSuggestions(data, usStates, response))
           .catch((error) => {
-            console.error('Error fetching address suggestions:', error);
+            console.error(
+              '[Multiple Addresses] Error fetching address suggestions:',
+              error
+            );
             response([]);
           });
       },
@@ -338,4 +350,4 @@ document.addEventListener('DOMContentLoaded', () => {
     initCheckoutAddressSelector();
   }
 
-});
+})(jQuery);
