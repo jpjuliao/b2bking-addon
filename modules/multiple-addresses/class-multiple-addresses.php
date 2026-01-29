@@ -93,6 +93,19 @@ class Multiple_Addresses
         true
       );
 
+      // Enqueue Select2
+      wp_enqueue_style(
+        'select2',
+        'https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css'
+      );
+      wp_enqueue_script(
+        'select2',
+        'https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js',
+        array('jquery'),
+        '4.1.0',
+        true
+      );
+
       wp_enqueue_style(
         'wc-multiple-addresses',
         plugin_dir_url(__FILE__) . 'assets/css/style.css'
@@ -105,7 +118,7 @@ class Multiple_Addresses
       wp_enqueue_script(
         'wc-multiple-addresses',
         plugin_dir_url(__FILE__) . 'assets/js/script.js',
-        array('jquery', 'jquery-ui-autocomplete'),
+        array('jquery', 'jquery-ui-autocomplete', 'select2'),
         '1.0.0',
         true
       );
@@ -201,6 +214,7 @@ class Multiple_Addresses
     $user_id = get_current_user_id();
     $addresses = $this->get_user_addresses($user_id);
     $default_address_id = get_user_meta($user_id, '_wc_default_address_id', true);
+    $us_states = $this->get_us_states();
 
     ?>
     <div class="woocommerce-addresses">
@@ -218,6 +232,7 @@ class Multiple_Addresses
         </h4>
         <form id="save-address-form" class="save-address-form">
           <input type="hidden" name="address_id" id="address_id" value="">
+          <input type="hidden" name="country" id="country" value="US">
           <p>
             <label for="first_name">
               <?php _e('First Name', 'woocommerce'); ?> *
@@ -256,9 +271,16 @@ class Multiple_Addresses
           </p>
           <p>
             <label for="state">
-              <?php _e('State / County', 'woocommerce'); ?> *
+              <?php _e('State', 'woocommerce'); ?> *
             </label>
-            <input type="text" name="state" id="state" required>
+            <select name="state" id="state" required style="width: 100%;">
+              <option value="">Select a state...</option>
+              <?php foreach ($us_states as $state_name => $state_code): ?>
+                <option value="<?php echo esc_attr($state_code); ?>">
+                  <?php echo esc_html($state_name); ?>
+                </option>
+              <?php endforeach; ?>
+            </select>
           </p>
           <p>
             <label for="postcode">
@@ -267,18 +289,12 @@ class Multiple_Addresses
             <input type="text" name="postcode" id="postcode" required>
           </p>
           <p>
-            <label for="country">
-              <?php _e('Country', 'woocommerce'); ?> *
-            </label>
-            <input type="text" name="country" id="country" required>
-          </p>
-          <p>
             <label for="phone">
               <?php _e('Phone', 'woocommerce'); ?>
             </label>
             <input type="text" name="phone" id="phone">
           </p>
-          <p>
+          <p class="form-actions">
             <button type="submit" class="button">
               <?php _e('Save Address', 'woocommerce'); ?>
             </button>
@@ -320,9 +336,6 @@ class Multiple_Addresses
               <?php endif; ?>
               <p>
                 <?php echo esc_html($address['city'] . ', ' . $address['state'] . ' ' . $address['postcode']); ?>
-              </p>
-              <p>
-                <?php echo esc_html($address['country']); ?>
               </p>
               <?php if (!empty($address['phone'])): ?>
                 <p>

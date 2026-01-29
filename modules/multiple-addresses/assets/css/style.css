@@ -21,6 +21,7 @@
     .default-address {
       align-self: flex-start;
     }
+
   }
 
   .default-address {
@@ -35,6 +36,10 @@
   display: grid;
   grid-template-columns: 1fr 1fr;
   column-gap: 20px;
+
+  p.form-actions {
+    grid-column: 1 / 3;
+  }
 
   @media (max-width: 767px) {
     display: block;

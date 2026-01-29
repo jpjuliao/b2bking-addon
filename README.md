@@ -1,4 +1,4 @@
-# B2BKing Addons
+# B2BKing Addon
 
 A powerful add-on plugin for the **B2BKing Premium Plugin** to enable a more advanced dashboard for B2B users! 🚀
 

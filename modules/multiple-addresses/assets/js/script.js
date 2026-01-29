@@ -20,12 +20,23 @@ document.addEventListener('DOMContentLoaded', () => {
   const initAddressManagement = () => {
     const addresses = wcMultipleAddresses.addresses || {};
 
+    if ($('#state').length) {
+      $('#state').select2({
+        placeholder: 'Select a state...',
+        allowClear: true
+      });
+    }
+
     const addNewBtn = elemID('add-new-address');
     if (addNewBtn) {
       addNewBtn.addEventListener('click', () => {
         elemID('address-form').style.display = 'block';
         elemID('save-address-form').reset();
         elemID('address_id').value = '';
+
+        if ($('#state').length) {
+          $('#state').val(null).trigger('change');
+        }
 
         photonAddressAutocomplete('#address_1', (data) => {
           const fields = [
@@ -66,7 +77,13 @@ document.addEventListener('DOMContentLoaded', () => {
         elemID('address_1').value = address.address_1;
         elemID('address_2').value = address.address_2;
         elemID('city').value = address.city;
-        elemID('state').value = address.state;
+
+        if ($('#state').length) {
+          $('#state').val(address.state).trigger('change');
+        } else {
+          elemID('state').value = address.state;
+        }
+
         elemID('postcode').value = address.postcode;
         elemID('country').value = address.country;
         elemID('phone').value = address.phone;
@@ -214,7 +231,6 @@ document.addEventListener('DOMContentLoaded', () => {
       });
     });
 
-    // Billing address autocomplete
     photonAddressAutocomplete('#billing_address_1', (data) => {
       const fields = [
         ['#billing_address_1', data.line1],
@@ -249,7 +265,7 @@ document.addEventListener('DOMContentLoaded', () => {
           elemID('shipping_postcode').value = address.postcode;
           setValueAndTrigger('#shipping_country', address.country, true);
         } else {
-          if (shippingFields) shippingFields.style.display = 'block';
+          if (shippingFields) shippingFields.style.display = 'grid';
           elemID('shipping_first_name').value = '';
           elemID('shipping_last_name').value = '';
           elemID('shipping_company').value = '';
@@ -274,9 +290,13 @@ document.addEventListener('DOMContentLoaded', () => {
   const setValueAndTrigger = (selector, value, changeEvent) => {
     const el = select(selector);
     if (el) {
-      el.value = value;
-      if (changeEvent) {
-        el.dispatchEvent(new Event('change', { bubbles: true }));
+      if ($(selector).hasClass('select2-hidden-accessible')) {
+        $(selector).val(value).trigger('change');
+      } else {
+        el.value = value;
+        if (changeEvent) {
+          el.dispatchEvent(new Event('change', { bubbles: true }));
+        }
       }
     }
   }
