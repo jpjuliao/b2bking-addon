@@ -1,5 +1,5 @@
 <?php
-namespace JPJULIAO\B2BKing_Addons;
+namespace JPJULIAO\B2BKing_Addon;
 
 class User_Report_Scripts
 {

@@ -54,7 +54,7 @@ Showing: Best Sellers [Clear filter]
 ### Method 1: Plugin File
 ```php
 // In your B2BKing Addons plugin
-namespace JPJULIAO\B2BKing_Addons;
+namespace JPJULIAO\B2BKing_Addon;
 require_once __DIR__ . '/class-wc-shop-filters.php';
 ```
 

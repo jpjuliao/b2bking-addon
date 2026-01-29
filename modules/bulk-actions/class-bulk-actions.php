@@ -1,6 +1,6 @@
 <?php
 
-namespace JPJULIAO\B2BKing_Addons;
+namespace JPJULIAO\B2BKing_Addon;
 
 class Bulk_Actions
 {

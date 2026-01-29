@@ -1,6 +1,6 @@
 <?php
 
-namespace JPJULIAO\B2BKing_Addons;
+namespace JPJULIAO\B2BKing_Addon;
 
 class Shop_Filters_Query extends Shop_Filters_Base
 {

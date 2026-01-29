@@ -1,17 +1,17 @@
 <?php
 
 /**
- * Plugin Name: B2BKing Addons
+ * Plugin Name: B2Bking Addon for Brands Collective
  * Plugin URI: https://jpjuliao.github.io
  * Description: This plugin extends B2BKing plugin to add an advanced report section in the user account and an information table without prices for guest.
  * Version: 1.0.0
  * Author: Juan Pablo Juliao
  * Author URI: https://jpjuliao.github.io
- * Text Domain: jpjuliao-b2bking-user-dashboard
+ * Text Domain: b2bking-addon-for-brands-collective
  * Requires Plugins: b2bking, b2bking-wholesale-for-woocommerce, woocommerce
  */
 
-namespace JPJULIAO\B2BKing_Addons;
+namespace JPJULIAO\B2BKing_Addon;
 
 if (!defined('WPINC')) {
   die;
